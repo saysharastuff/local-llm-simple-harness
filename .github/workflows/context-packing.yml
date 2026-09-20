@@ -12,9 +12,6 @@ jobs:
   benchmark:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      HARNESS_DECISION_URL: https://sayshara-decision-engine.hf.space
-
     steps:
       - uses: actions/checkout@v4
         with:
