@@ -432,7 +432,8 @@ async function main() {
     semanticPolicy: {
       projectUncertainMaxMargin: PROJECT_UNCERTAIN_MAX_MARGIN,
       projectUncertainMinRelativeScore: PROJECT_UNCERTAIN_MIN_RELATIVE_SCORE,
-      structuralBackup: "highest-behavior function/class when top project result is non-behavioral and uncertain",
+      structuralBackup:
+        "highest-behavior function/class when top project result is non-behavioral and uncertain",
     },
     metrics: {
       wholeQueryEvidenceRecall: mean(
