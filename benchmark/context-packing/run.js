@@ -62,6 +62,74 @@ function packBudgeted(tool, items, budgetTokens) {
   return { selected, tokens };
 }
 
+async function semanticRerank(baseUrl, facet, tool, items) {
+  if (items.length === 0) {
+    return [];
+  }
+
+  const choices = items.map((item, index) => ({
+    id: `candidate-${index}`,
+    description: itemText(tool, item),
+    exemplars: [item.path],
+  }));
+
+  const response = await fetch(new URL("/v1/decide", baseUrl), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      state: facet,
+      choices,
+      metadata: { task: "context-rerank", tool },
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Semantic rerank failed with HTTP ${response.status}`);
+  }
+
+  const payload = await response.json();
+  const byId = new Map(
+    choices.map((choice, index) => [choice.id, items[index]]),
+  );
+
+  return payload.ranking
+    .map((ranked) => {
+      const item = byId.get(ranked.choice_id);
+      return item
+        ? {
+            ...item,
+            semanticScore: Number(ranked.score),
+            semanticEvidence: ranked.evidence,
+          }
+        : null;
+    })
+    .filter(Boolean);
+}
+
+function packSemanticFacets(tool, facetResults, budgetTokens) {
+  const selected = [];
+  const usedPaths = new Set();
+  let tokens = 0;
+
+  for (const entry of facetResults) {
+    const candidate = entry.items.find((item) => !usedPaths.has(item.path));
+    if (!candidate) {
+      continue;
+    }
+
+    const cost = estimateTokens(itemText(tool, candidate));
+    if (tokens + cost > budgetTokens) {
+      continue;
+    }
+
+    selected.push({ ...candidate, facet: entry.facet });
+    usedPaths.add(candidate.path);
+    tokens += cost;
+  }
+
+  return { selected, tokens };
+}
+
 function packFacetAware(tool, facetResults, budgetTokens) {
   const selected = [];
   const usedPaths = new Set();
@@ -162,6 +230,11 @@ async function main() {
   const manifestPath = resolve(process.argv[2] ?? DEFAULT_MANIFEST);
   const outputPath = resolve(process.argv[3] ?? DEFAULT_OUTPUT);
   const corpusRoot = resolve(DEFAULT_CORPUS);
+  const decisionUrl = process.env.HARNESS_DECISION_URL;
+
+  if (!decisionUrl) {
+    throw new Error("HARNESS_DECISION_URL is required for semantic reranking.");
+  }
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   const scenarios = [];
 
@@ -192,6 +265,24 @@ async function main() {
       manifest.budgetTokens,
     );
 
+    const semanticFacetResults = [];
+    for (const entry of facetResults) {
+      semanticFacetResults.push({
+        facet: entry.facet,
+        items: await semanticRerank(
+          decisionUrl,
+          entry.facet,
+          scenario.tool,
+          collapseByPath(entry.items),
+        ),
+      });
+    }
+    const semanticFacetPack = packSemanticFacets(
+      scenario.tool,
+      semanticFacetResults,
+      manifest.budgetTokens,
+    );
+
     scenarios.push({
       id: scenario.id,
       tool: scenario.tool,
@@ -208,6 +299,12 @@ async function main() {
         scenario.requiredPaths,
         facetPack.selected,
         facetPack.tokens,
+        manifest.budgetTokens,
+      ),
+      semanticFacetAware: evaluate(
+        scenario.requiredPaths,
+        semanticFacetPack.selected,
+        semanticFacetPack.tokens,
         manifest.budgetTokens,
       ),
     });
@@ -236,6 +333,15 @@ async function main() {
       ),
       facetAwareMeanTokens: mean(
         scenarios.map((item) => item.facetAware.tokens),
+      ),
+      semanticFacetEvidenceRecall: mean(
+        scenarios.map((item) => item.semanticFacetAware.evidenceRecall),
+      ),
+      semanticFacetNoiseRate: mean(
+        scenarios.map((item) => item.semanticFacetAware.noiseRate),
+      ),
+      semanticFacetMeanTokens: mean(
+        scenarios.map((item) => item.semanticFacetAware.tokens),
       ),
     },
     scenarios,
