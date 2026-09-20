@@ -354,6 +354,19 @@ async function main() {
       query: scenario.query,
       requiredPaths: scenario.requiredPaths,
       facets,
+      facetCandidates: facetResults.map((entry) => ({
+        facet: entry.facet,
+        paths: [...new Set(entry.items.map((item) => item.path))],
+      })),
+      semanticFacetCandidates: semanticFacetResults.map((entry) => ({
+        facet: entry.facet,
+        ranking: entry.items.map((item) => ({
+          path: item.path,
+          semanticScore: item.semanticScore,
+          kind: item.kind ?? null,
+          symbol: item.symbol ?? null,
+        })),
+      })),
       wholeQuery: evaluate(
         scenario.requiredPaths,
         wholePack.selected,
