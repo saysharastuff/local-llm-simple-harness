@@ -12,6 +12,8 @@ jobs:
   benchmark:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      HARNESS_DECISION_URL: https://sayshara-decision-engine.hf.space
 
     steps:
       - uses: actions/checkout@v4
@@ -42,18 +44,18 @@ jobs:
           const lines = [
             "# Context packing benchmark",
             "",
-            "| Metric | Whole query | Facet aware |",
-            "|---|---:|---:|",
-            `| Evidence recall | ${pct(data.metrics.wholeQueryEvidenceRecall)} | ${pct(data.metrics.facetAwareEvidenceRecall)} |`,
-            `| Noise rate | ${pct(data.metrics.wholeQueryNoiseRate)} | ${pct(data.metrics.facetAwareNoiseRate)} |`,
-            `| Mean packed tokens | ${data.metrics.wholeQueryMeanTokens.toFixed(1)} | ${data.metrics.facetAwareMeanTokens.toFixed(1)} |`,
+            "| Metric | Whole query | Facet lexical | Facet semantic |",
+            "|---|---:|---:|---:|",
+            `| Evidence recall | ${pct(data.metrics.wholeQueryEvidenceRecall)} | ${pct(data.metrics.facetAwareEvidenceRecall)} | ${pct(data.metrics.semanticFacetEvidenceRecall)} |`,
+            `| Noise rate | ${pct(data.metrics.wholeQueryNoiseRate)} | ${pct(data.metrics.facetAwareNoiseRate)} | ${pct(data.metrics.semanticFacetNoiseRate)} |`,
+            `| Mean packed tokens | ${data.metrics.wholeQueryMeanTokens.toFixed(1)} | ${data.metrics.facetAwareMeanTokens.toFixed(1)} | ${data.metrics.semanticFacetMeanTokens.toFixed(1)} |`,
             "",
-            "| Scenario | Whole recall | Facet recall | Whole noise | Facet noise |",
-            "|---|---:|---:|---:|---:|",
+            "| Scenario | Whole recall | Lexical facet | Semantic facet | Whole noise | Semantic noise |",
+            "|---|---:|---:|---:|---:|---:|",
           ];
           for (const item of data.scenarios) {
             lines.push(
-              `| ${item.id} | ${pct(item.wholeQuery.evidenceRecall)} | ${pct(item.facetAware.evidenceRecall)} | ${pct(item.wholeQuery.noiseRate)} | ${pct(item.facetAware.noiseRate)} |`,
+              `| ${item.id} | ${pct(item.wholeQuery.evidenceRecall)} | ${pct(item.facetAware.evidenceRecall)} | ${pct(item.semanticFacetAware.evidenceRecall)} | ${pct(item.wholeQuery.noiseRate)} | ${pct(item.semanticFacetAware.noiseRate)} |`,
             );
           }
           fs.writeFileSync(
