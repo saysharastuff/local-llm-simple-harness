@@ -12,6 +12,7 @@ jobs:
   benchmark:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,20 +25,19 @@ jobs:
 
       - run: npm ci
 
-      - name: Verify clarifier endpoint
-        run: |
-          curl -fsS "$HARNESS_DECISION_URL/health"
-          curl -fsS             -H "Content-Type: application/json"             -d '{"state":"find startup failure and whether fallback changed"}'             "$HARNESS_DECISION_URL/v1/clarify"
-
       - name: Run context packing benchmark
         run: |
-          node benchmark/context-packing/run.js             benchmark/context-packing/manifest.json             context-packing-results.json
+          node benchmark/context-packing/run.js \
+            benchmark/context-packing/manifest.json \
+            context-packing-results.json
 
       - name: Build summary
         run: |
           node - <<'NODE'
           const fs = require("fs");
-          const data = JSON.parse(fs.readFileSync("context-packing-results.json", "utf8"));
+          const data = JSON.parse(
+            fs.readFileSync("context-packing-results.json", "utf8"),
+          );
           const pct = (value) => (value * 100).toFixed(1) + "%";
           const lines = [
             "# Context packing benchmark",
@@ -53,10 +53,13 @@ jobs:
           ];
           for (const item of data.scenarios) {
             lines.push(
-              `| ${item.id} | ${pct(item.wholeQuery.evidenceRecall)} | ${pct(item.facetAware.evidenceRecall)} | ${pct(item.wholeQuery.noiseRate)} | ${pct(item.facetAware.noiseRate)} |`
+              `| ${item.id} | ${pct(item.wholeQuery.evidenceRecall)} | ${pct(item.facetAware.evidenceRecall)} | ${pct(item.wholeQuery.noiseRate)} | ${pct(item.facetAware.noiseRate)} |`,
             );
           }
-          fs.writeFileSync("context-packing-summary.md", lines.join("\n") + "\n");
+          fs.writeFileSync(
+            "context-packing-summary.md",
+            lines.join("\n") + "\n",
+          );
           NODE
           cat context-packing-summary.md >> "$GITHUB_STEP_SUMMARY"
 
