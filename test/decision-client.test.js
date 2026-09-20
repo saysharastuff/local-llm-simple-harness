@@ -1,9 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {
-  getDecisionConfig,
-  requestDecision,
-} from "../lib/decision-client.js";
+import { getDecisionConfig, requestDecision } from "../lib/decision-client.js";
 
 test("getDecisionConfig defaults to off", () => {
   assert.deepEqual(getDecisionConfig({}), {
