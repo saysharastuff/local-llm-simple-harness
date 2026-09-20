@@ -1,0 +1,42 @@
+[
+  {
+    "id": "date",
+    "description": "Current date, time, weekday, calendar context, and relative date questions",
+    "exemplars": [
+      "What date is it today?",
+      "What time is it right now?",
+      "What day of the week is it?",
+      "Give me the current timestamp"
+    ]
+  },
+  {
+    "id": "calculator",
+    "description": "Numeric arithmetic and deterministic mathematical calculations",
+    "exemplars": [
+      "Calculate 37 times 19",
+      "What is 4096 divided by 16?",
+      "Compute this arithmetic expression",
+      "What is 15 percent of 240?"
+    ]
+  },
+  {
+    "id": "project_search",
+    "description": "Find code, filenames, symbols, configuration keys, or exact text inside the current project files",
+    "exemplars": [
+      "Where is this function defined in the repo?",
+      "Search the project for this environment variable",
+      "Which source file contains this symbol?",
+      "Find references to AbortController in the codebase"
+    ]
+  },
+  {
+    "id": "doc_search",
+    "description": "Retrieve explanatory passages from documentation, notes, READMEs, manuals, and knowledge documents",
+    "exemplars": [
+      "What do the docs say about configuration?",
+      "Look up the installation instructions in the README",
+      "Find the documented explanation of this feature",
+      "Search our notes for how this is supposed to work"
+    ]
+  }
+]

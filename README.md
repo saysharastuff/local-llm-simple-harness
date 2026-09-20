@@ -108,3 +108,32 @@ node --env-file=.env review.js ./review.js "Review error handling and asynchrono
 Decision traces are written to stderr so stdout remains only the model's review output.
 
 Run `npm test` and `npm run format:check` before merging.
+
+
+## Experimental bounded tools
+
+The harness also includes a small deterministic tool surface for testing semantic
+routing independently from generation:
+
+- `date`: current date/time context.
+- `calculator`: safe arithmetic parser with no `eval`.
+- `project_search`: bounded local source/file search.
+- `doc_search`: bounded retrieval of relevant documentation chunks for RAG.
+
+The Decision Engine ranks only these declared tools. The harness owns the allowed
+roots, routing policy, and execution. The Decision Engine does not invent tool
+names, paths, permissions, or arguments.
+
+Example:
+
+```bash
+HARNESS_DECISION_MODE=required \
+HARNESS_DECISION_TRACE=true \
+node --env-file=.env tool.js "Where is selectReviewLenses defined?"
+```
+
+Set `HARNESS_PROJECT_ROOT` and `HARNESS_DOC_ROOT` to constrain the search
+surface. Both default to the current working directory.
+
+Tool-routing benchmark prompts live in
+`benchmark/tool-routing/manifest.json`.
