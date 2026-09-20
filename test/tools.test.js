@@ -37,6 +37,29 @@ test("project search finds source symbols", async () => {
   assert.equal(results[0].path, "router.js");
 });
 
+test("project search includes bounded surrounding context", async () => {
+  const root = await mkdtemp(join(tmpdir(), "harness-project-context-"));
+  await writeFile(
+    join(root, "auth.js"),
+    [
+      "export function loadAuthToken(env) {",
+      "  const name = \"HARNESS_MODEL_API_KEY\";",
+      "  // Load the auth token used by outbound requests.",
+      "  return env[name] ?? \"\";",
+      "}",
+      "",
+    ].join("\n"),
+  );
+
+  const results = await projectSearch("Where is the auth token loaded?", {
+    root,
+  });
+
+  assert.equal(results[0].path, "auth.js");
+  assert.match(results[0].context, /export function loadAuthToken/);
+  assert.match(results[0].context, /return env\[name\]/);
+});
+
 test("doc search returns relevant document chunks", async () => {
   const root = await mkdtemp(join(tmpdir(), "harness-docs-"));
   await mkdir(join(root, "docs"));
