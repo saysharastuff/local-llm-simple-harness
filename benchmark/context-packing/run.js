@@ -424,9 +424,7 @@ async function main() {
         scenarios.map((item) => item.semanticFacetAware.tokens),
       ),
       meanUncertainFacets: mean(
-        scenarios.map(
-          (item) => item.semanticFacetAware.uncertainFacets.length,
-        ),
+        scenarios.map((item) => item.semanticFacetAware.uncertainFacets.length),
       ),
     },
     scenarios,
