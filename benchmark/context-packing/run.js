@@ -143,10 +143,13 @@ function evaluate(requiredPaths, selected, tokens, budgetTokens) {
   return {
     evidenceRecall: hits.length / required.size,
     evidenceHits: hits,
-    missingEvidence: requiredPaths.filter((path) => !selectedPaths.includes(path)),
+    missingEvidence: requiredPaths.filter(
+      (path) => !selectedPaths.includes(path),
+    ),
     selectedPaths,
     noisePaths: noise,
-    noiseRate: selectedPaths.length === 0 ? 0 : noise.length / selectedPaths.length,
+    noiseRate:
+      selectedPaths.length === 0 ? 0 : noise.length / selectedPaths.length,
     tokens,
     budgetTokens,
     tokenUtilization: tokens / budgetTokens,

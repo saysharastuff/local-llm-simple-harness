@@ -24,37 +24,25 @@
       "id": "project-auth-logging",
       "tool": "project_search",
       "query": "Find how the auth token is loaded and whether debug logging includes request headers.",
-      "requiredPaths": [
-        "project/auth-token.js",
-        "project/request-logging.js"
-      ]
+      "requiredPaths": ["project/auth-token.js", "project/request-logging.js"]
     },
     {
       "id": "docs-endpoint-auth",
       "tool": "doc_search",
       "query": "According to the docs, how do I configure the model endpoint and what do they say about basic-password authentication?",
-      "requiredPaths": [
-        "docs/model-endpoint.md",
-        "docs/authentication.md"
-      ]
+      "requiredPaths": ["docs/model-endpoint.md", "docs/authentication.md"]
     },
     {
       "id": "docs-benchmark-results",
       "tool": "doc_search",
       "query": "How do the docs say to run the benchmark and where should I look for the saved result artifact?",
-      "requiredPaths": [
-        "docs/run-benchmark.md",
-        "docs/result-artifacts.md"
-      ]
+      "requiredPaths": ["docs/run-benchmark.md", "docs/result-artifacts.md"]
     },
     {
       "id": "docs-project-vs-doc",
       "tool": "doc_search",
       "query": "What do the notes say project search is for and how is document search supposed to provide context?",
-      "requiredPaths": [
-        "docs/project-search.md",
-        "docs/document-search.md"
-      ]
+      "requiredPaths": ["docs/project-search.md", "docs/document-search.md"]
     }
   ]
 }
