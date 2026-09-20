@@ -54,3 +54,56 @@ Help:
 ```powershell
 node review.js --help
 ```
+
+
+## Optional Decision Engine assistance
+
+This fork can ask a separate Decision Engine to rank bounded review lenses before calling the generation model. The harness still owns policy and the model still performs the review.
+
+For today's hosted test deployment:
+
+```dotenv
+HARNESS_DECISION_MODE=assist
+HARNESS_DECISION_URL=https://sayshara-decision-engine.hf.space
+HARNESS_DECISION_TIMEOUT_MS=5000
+HARNESS_DECISION_TRACE=true
+```
+
+Modes:
+
+- `off`: original harness behavior.
+- `assist`: use Decision Engine guidance when available, otherwise fall back to original behavior.
+- `required`: fail if Decision Engine is unavailable or returns an invalid response.
+
+The Decision Engine returns a ranking rather than authority. The harness selects up to two strong review lenses and converts them into deterministic prompt guidance.
+
+### A/B test
+
+Run the same file, review request, and model twice.
+
+Baseline:
+
+```powershell
+$env:HARNESS_DECISION_MODE="off"
+node --env-file=.env review.js ./review.js "Review error handling and asynchronous behavior."
+```
+
+Assisted:
+
+```powershell
+$env:HARNESS_DECISION_MODE="assist"
+$env:HARNESS_DECISION_TRACE="true"
+node --env-file=.env review.js ./review.js "Review error handling and asynchronous behavior."
+```
+
+On bash/zsh:
+
+```bash
+HARNESS_DECISION_MODE=off node --env-file=.env review.js ./review.js "Review error handling and asynchronous behavior."
+
+HARNESS_DECISION_MODE=assist \
+HARNESS_DECISION_TRACE=true \
+node --env-file=.env review.js ./review.js "Review error handling and asynchronous behavior."
+```
+
+Decision traces are written to stderr so stdout remains only the model's review output.
