@@ -64,7 +64,7 @@ test("project search includes bounded surrounding context", async () => {
   assert.equal(results[0].symbol, "loadAuthToken");
   assert.match(results[0].semanticContext, /export function loadAuthToken/);
   assert.match(results[0].semanticContext, /return env\[name\]/);
-  assert.doesNotMatch(results[0].semanticContext, /Load the auth token/);
+  assert.match(results[0].semanticContext, /comment: Load the auth token used by outbound requests/);
 });
 
 test("project search distinguishes constants from functions for semantic reranking", async () => {
@@ -82,6 +82,7 @@ test("project search distinguishes constants from functions for semantic reranki
 
   assert.equal(results[0].kind, "constant");
   assert.equal(results[0].symbol, "startupBanner");
+  assert.match(results[0].semanticContext, /comment: startup retry/);
   assert.doesNotMatch(results[0].semanticContext, /startup retry startup/);
 });
 
