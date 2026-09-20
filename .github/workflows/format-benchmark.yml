@@ -1,0 +1,28 @@
+name: Format benchmark runner
+
+on:
+  push:
+    branches:
+      - decision-engine-integration
+    paths:
+      - ".github/workflows/format-benchmark.yml"
+  workflow_dispatch:
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Format runner
+        run: |
+          npx prettier benchmark/run.js > formatted-run.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: formatted-benchmark-runner
+          path: formatted-run.js
+          retention-days: 1
