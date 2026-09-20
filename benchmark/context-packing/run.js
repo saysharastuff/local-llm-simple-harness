@@ -113,25 +113,27 @@ function packFacetAware(tool, facetResults, budgetTokens) {
   return { selected, tokens };
 }
 
-async function clarify(baseUrl, state) {
-  const response = await fetch(new URL("/v1/clarify", baseUrl), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ state }),
-  });
+function clarify(state) {
+  const whole = state.replace(/\s+/g, " ").trim();
+  const split = whole.split(
+    /(?:[.!?;]+\s+|\s+(?:and whether|and|or|but|plus)\s+)/i,
+  );
+  const facets = [];
+  const seen = new Set();
 
-  if (!response.ok) {
-    throw new Error(`Clarifier failed with HTTP ${response.status}`);
+  for (const part of split) {
+    const facet = part.replace(/^[ ,.;:!?]+|[ ,.;:!?]+$/g, "");
+    if (facet.split(/\s+/).length < 3) {
+      continue;
+    }
+    const key = facet.toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      facets.push(facet);
+    }
   }
 
-  const payload = await response.json();
-  if (!Array.isArray(payload.units) || payload.units.length === 0) {
-    throw new Error("Clarifier returned no units.");
-  }
-
-  // Unit 0 is the whole request. Facet-aware retrieval uses only decomposed
-  // units when available, falling back to the whole request otherwise.
-  return payload.units.length > 1 ? payload.units.slice(1) : payload.units;
+  return facets.length > 1 ? facets : [whole];
 }
 
 function evaluate(requiredPaths, selected, tokens, budgetTokens) {
@@ -160,12 +162,6 @@ async function main() {
   const manifestPath = resolve(process.argv[2] ?? DEFAULT_MANIFEST);
   const outputPath = resolve(process.argv[3] ?? DEFAULT_OUTPUT);
   const corpusRoot = resolve(DEFAULT_CORPUS);
-  const decisionUrl = process.env.HARNESS_DECISION_URL;
-
-  if (!decisionUrl) {
-    throw new Error("HARNESS_DECISION_URL is required.");
-  }
-
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   const scenarios = [];
 
@@ -181,7 +177,7 @@ async function main() {
       manifest.budgetTokens,
     );
 
-    const facets = await clarify(decisionUrl, scenario.query);
+    const facets = clarify(scenario.query);
     const facetResults = [];
     for (const facet of facets) {
       facetResults.push({
