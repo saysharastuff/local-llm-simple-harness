@@ -55,7 +55,6 @@ Help:
 node review.js --help
 ```
 
-
 ## Optional Decision Engine assistance
 
 This fork can ask a separate Decision Engine to rank bounded review lenses before calling the generation model. The harness still owns policy and the model still performs the review.
