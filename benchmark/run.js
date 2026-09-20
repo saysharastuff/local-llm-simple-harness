@@ -84,9 +84,7 @@ async function loadManifest(path) {
 
 function extractDecisionTrace(stderr) {
   const prefix = "Decision Engine: ";
-  const line = stderr
-    .split(/\r?\n/)
-    .find((item) => item.startsWith(prefix));
+  const line = stderr.split(/\r?\n/).find((item) => item.startsWith(prefix));
 
   if (!line) {
     return null;
@@ -207,7 +205,9 @@ async function main() {
   );
 
   if (failed) {
-    throw new Error("One or more benchmark runs failed; see benchmark-results.");
+    throw new Error(
+      "One or more benchmark runs failed; see benchmark-results.",
+    );
   }
 }
 
