@@ -43,9 +43,9 @@ test("project search includes bounded surrounding context", async () => {
     join(root, "auth.js"),
     [
       "export function loadAuthToken(env) {",
-      "  const name = \"HARNESS_MODEL_API_KEY\";",
+      '  const name = "HARNESS_MODEL_API_KEY";',
       "  // Load the auth token used by outbound requests.",
-      "  return env[name] ?? \"\";",
+      '  return env[name] ?? "";',
       "}",
       "",
     ].join("\n"),

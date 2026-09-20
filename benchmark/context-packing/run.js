@@ -71,7 +71,9 @@ async function semanticRerank(baseUrl, facet, tool, items) {
   }
 
   if (items.length === 1) {
-    return [{ ...items[0], semanticScore: 1, semanticEvidence: "only-candidate" }];
+    return [
+      { ...items[0], semanticScore: 1, semanticEvidence: "only-candidate" },
+    ];
   }
 
   const choices = items.map((item, index) => ({
