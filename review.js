@@ -157,7 +157,9 @@ async function readFileBounded(filePath, maxBytes) {
     if (err?.code === "ENOENT") {
       throw new Error(`File not found: ${filePath}`);
     }
-    throw new Error(`Cannot access file: ${filePath} (${err?.code ?? "unknown"})`);
+    throw new Error(
+      `Cannot access file: ${filePath} (${err?.code ?? "unknown"})`,
+    );
   }
 
   if (!fileInfo.isFile()) {
@@ -196,7 +198,9 @@ async function readFileBounded(filePath, maxBytes) {
       if (bytesRead > maxBytes) {
         limitExceeded = true;
         stream.destroy();
-        fail(new Error(`File exceeds ${maxBytes} bytes and cannot be reviewed.`));
+        fail(
+          new Error(`File exceeds ${maxBytes} bytes and cannot be reviewed.`),
+        );
         return;
       }
       chunks.push(chunk);
