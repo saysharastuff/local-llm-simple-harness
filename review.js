@@ -1,6 +1,8 @@
 import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { resolve } from "node:path";
+import { getDecisionConfig, requestDecision } from "./lib/decision-client.js";
+import { buildDecisionRequest, buildReviewGuidance, selectReviewLenses } from "./lib/review-policy.js";
 
 // Design overview:
 // - This script performs one request/response cycle for one selected file.
@@ -242,7 +244,7 @@ async function readResponseTextBounded(response, maxBytes) {
 // Prompt construction keeps system policy and user request separate:
 // - system message defines review rules and safety posture.
 // - user message contains request text plus the selected file content.
-function buildMessages(reviewRequest, resolvedPath, fileContents) {
+function buildMessages(reviewRequest, resolvedPath, fileContents, decisionGuidance = "") {
   const systemMessage = [
     "You are reviewing one source file provided by the user.",
     "Review only the supplied file.",
@@ -253,7 +255,8 @@ function buildMessages(reviewRequest, resolvedPath, fileContents) {
     "Say explicitly when there are no clear findings.",
     "Respond in readable Markdown, not JSON.",
     "Do not execute or suggest executing commands.",
-  ].join(" ");
+    decisionGuidance,
+  ].filter(Boolean).join(" ");
 
   const userMessage = [
     `Review request: ${reviewRequest}`,
@@ -285,13 +288,52 @@ async function main() {
   }
 
   const config = getConfig();
+  const decisionConfig = getDecisionConfig();
   const absoluteFilePath = resolve(args.inputPath);
   const fileContents = await readFileBounded(absoluteFilePath, MAX_FILE_BYTES);
   const endpoint = buildChatCompletionsUrl(config.baseUrl);
+
+  let decisionGuidance = "";
+  if (decisionConfig.mode !== "off") {
+    try {
+      const decisionResult = await requestDecision({
+        baseUrl: decisionConfig.baseUrl,
+        request: buildDecisionRequest(args.reviewRequest),
+        timeoutMs: decisionConfig.timeoutMs,
+      });
+      const selectedLenses = selectReviewLenses(decisionResult);
+      decisionGuidance = buildReviewGuidance(selectedLenses);
+
+      if (decisionConfig.trace) {
+        process.stderr.write(
+          `Decision Engine: ${JSON.stringify({
+            decision: decisionResult.decision,
+            confident: decisionResult.confident,
+            ranking: decisionResult.ranking,
+            selectedLenses,
+          })}\n`,
+        );
+      }
+    } catch (err) {
+      if (decisionConfig.mode === "required") {
+        throw err;
+      }
+
+      if (decisionConfig.trace) {
+        const message =
+          err instanceof Error ? err.message : "Unknown Decision Engine error";
+        process.stderr.write(
+          `Decision Engine unavailable; continuing without assistance: ${message}\n`,
+        );
+      }
+    }
+  }
+
   const messages = buildMessages(
     args.reviewRequest,
     absoluteFilePath,
     fileContents,
+    decisionGuidance,
   );
 
   const requestBody = {
