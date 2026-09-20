@@ -109,7 +109,6 @@ Decision traces are written to stderr so stdout remains only the model's review 
 
 Run `npm test` and `npm run format:check` before merging.
 
-
 ## Experimental bounded tools
 
 The harness also includes a small deterministic tool surface for testing semantic

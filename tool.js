@@ -60,11 +60,15 @@ async function main() {
 
   if (!selectedTool) {
     process.stdout.write(
-      `${JSON.stringify({
-        selectedTool: null,
-        reason: "ambiguous-or-weak-routing-evidence",
-        ranking: decisionResult.ranking,
-      }, null, 2)}\n`,
+      `${JSON.stringify(
+        {
+          selectedTool: null,
+          reason: "ambiguous-or-weak-routing-evidence",
+          ranking: decisionResult.ranking,
+        },
+        null,
+        2,
+      )}\n`,
     );
     return;
   }
