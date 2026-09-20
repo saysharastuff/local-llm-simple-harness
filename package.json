@@ -17,7 +17,9 @@
   "scripts": {
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "node --test"
+    "test": "node --test",
+    "benchmark": "node benchmark/run.js",
+    "tool": "node tool.js"
   },
   "devDependencies": {
     "prettier": "^3.9.6"

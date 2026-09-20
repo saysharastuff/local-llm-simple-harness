@@ -1,0 +1,128 @@
+{
+  "version": 1,
+  "scenarios": [
+    {
+      "id": "date-today",
+      "query": "What date is it today?",
+      "expectedTool": "date"
+    },
+    {
+      "id": "date-time",
+      "query": "What time is it right now?",
+      "expectedTool": "date"
+    },
+    {
+      "id": "date-weekday",
+      "query": "What day of the week is it?",
+      "expectedTool": "date"
+    },
+    {
+      "id": "date-timestamp",
+      "query": "I need today's timestamp for this log entry.",
+      "expectedTool": "date"
+    },
+    {
+      "id": "date-month-year",
+      "query": "What month and year are we in?",
+      "expectedTool": "date"
+    },
+    {
+      "id": "date-schedule",
+      "query": "Before I schedule this, tell me the current date.",
+      "expectedTool": "date"
+    },
+
+    {
+      "id": "calc-multiply",
+      "query": "What is 37 * 19?",
+      "expectedTool": "calculator"
+    },
+    {
+      "id": "calc-expression",
+      "query": "Calculate (128 + 64) / 3.",
+      "expectedTool": "calculator"
+    },
+    {
+      "id": "calc-percent",
+      "query": "What's 15 percent of 240?",
+      "expectedTool": "calculator"
+    },
+    {
+      "id": "calc-divide",
+      "query": "I need the result of 4096 / 16.",
+      "expectedTool": "calculator"
+    },
+    {
+      "id": "calc-add",
+      "query": "Add 18.5 and 7.25 for me.",
+      "expectedTool": "calculator"
+    },
+    {
+      "id": "calc-square",
+      "query": "How much is 72 squared?",
+      "expectedTool": "calculator"
+    },
+
+    {
+      "id": "project-env",
+      "query": "Where in this repo is HARNESS_DECISION_TIMEOUT_MS defined?",
+      "expectedTool": "project_search"
+    },
+    {
+      "id": "project-function",
+      "query": "Find the file that implements selectReviewLenses.",
+      "expectedTool": "project_search"
+    },
+    {
+      "id": "project-abort",
+      "query": "Search the project for uses of AbortController.",
+      "expectedTool": "project_search"
+    },
+    {
+      "id": "project-url",
+      "query": "Which source file builds the chat completions URL?",
+      "expectedTool": "project_search"
+    },
+    {
+      "id": "project-workflow",
+      "query": "Find references to the semantic bakeoff workflow in this codebase.",
+      "expectedTool": "project_search"
+    },
+    {
+      "id": "project-catalog",
+      "query": "Where is the review lens catalog defined?",
+      "expectedTool": "project_search"
+    },
+
+    {
+      "id": "docs-endpoint",
+      "query": "What does the README say about configuring the model endpoint?",
+      "expectedTool": "doc_search"
+    },
+    {
+      "id": "docs-benchmark",
+      "query": "Look through the docs for instructions on running the benchmark.",
+      "expectedTool": "doc_search"
+    },
+    {
+      "id": "docs-purpose",
+      "query": "According to the documentation, what is this harness designed to do?",
+      "expectedTool": "doc_search"
+    },
+    {
+      "id": "docs-modes",
+      "query": "Find the documented explanation of decision assistance modes.",
+      "expectedTool": "doc_search"
+    },
+    {
+      "id": "docs-install",
+      "query": "What do the project notes say about installation?",
+      "expectedTool": "doc_search"
+    },
+    {
+      "id": "docs-auth",
+      "query": "Search the documentation for how authentication is configured.",
+      "expectedTool": "doc_search"
+    }
+  ]
+}

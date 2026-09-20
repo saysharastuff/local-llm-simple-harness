@@ -1,0 +1,62 @@
+[
+  {
+    "id": "correctness",
+    "description": "Logic bugs, incorrect behavior, and edge cases",
+    "exemplars": [
+      "Find bugs in this code",
+      "Check whether the implementation is correct",
+      "Could this produce the wrong result?",
+      "What edge case could change the behavior?"
+    ]
+  },
+  {
+    "id": "async",
+    "description": "Async control flow, promises, cancellation, races, and cleanup",
+    "exemplars": [
+      "Review asynchronous behavior",
+      "Check cancellation and concurrency",
+      "Does this stop cleanly when cancelled?",
+      "Could an in-flight operation keep running or race?"
+    ]
+  },
+  {
+    "id": "reliability",
+    "description": "Error handling, timeouts, bounded retries, and failure recovery",
+    "exemplars": [
+      "Review error handling",
+      "Look for failure modes",
+      "Could a slow dependency hang this operation?",
+      "What happens after repeated failures or lost error details?"
+    ]
+  },
+  {
+    "id": "security",
+    "description": "Unsafe input, injection, secrets, path escape, and trust boundaries",
+    "exemplars": [
+      "Review security",
+      "Look for unsafe handling of untrusted input",
+      "Can a user-controlled path escape its allowed directory?",
+      "Could external input expose data, cross a trust boundary, or leak a secret?"
+    ]
+  },
+  {
+    "id": "performance",
+    "description": "Unnecessary work, memory growth, latency, and scalability",
+    "exemplars": [
+      "Review performance",
+      "Look for inefficient behavior",
+      "Could this repeat expensive work unnecessarily?",
+      "Could memory, latency, or resource use grow unexpectedly?"
+    ]
+  },
+  {
+    "id": "maintainability",
+    "description": "Clarity, coupling, duplication, and change risk",
+    "exemplars": [
+      "Review maintainability",
+      "Look for brittle design",
+      "Would this be difficult to change safely?",
+      "Is the design unclear, duplicated, or tightly coupled?"
+    ]
+  }
+]

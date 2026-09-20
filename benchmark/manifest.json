@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "scenarios": [
+    {
+      "id": "sensor-polling",
+      "title": "Phone sensor polling and cancellation",
+      "file": "benchmark/fixtures/sensor-polling.js",
+      "reviewRequest": "Check whether this polling code shuts down cleanly and handles cancellation.",
+      "expectedLenses": ["async", "reliability"],
+      "plantedFindings": [
+        {
+          "id": "timer-not-cleared",
+          "description": "stop() does not clear the active polling interval or reset the timer state."
+        },
+        {
+          "id": "abort-not-forwarded",
+          "description": "The AbortSignal is checked after the sensor read but is never passed into readTemperature, so an in-flight read cannot be cancelled."
+        }
+      ]
+    },
+    {
+      "id": "request-recovery",
+      "title": "Local model client failure recovery",
+      "file": "benchmark/fixtures/request-recovery.js",
+      "reviewRequest": "Review how this client behaves when requests keep failing and whether useful failure information survives.",
+      "expectedLenses": ["reliability"],
+      "plantedFindings": [
+        {
+          "id": "unbounded-retry",
+          "description": "Non-abort failures retry forever with no attempt limit."
+        },
+        {
+          "id": "error-detail-discarded",
+          "description": "The catch path replaces the original failure details with a generic warning before retrying."
+        }
+      ]
+    },
+    {
+      "id": "external-input",
+      "title": "External app trust boundary",
+      "file": "benchmark/fixtures/external-input.js",
+      "reviewRequest": "Could anything coming from another app make us read something we should not, or expose information we meant to keep private?",
+      "expectedLenses": ["security"],
+      "plantedFindings": [
+        {
+          "id": "path-traversal",
+          "description": "An untrusted relative path is joined directly to the allowed root and can escape it with parent-directory segments."
+        },
+        {
+          "id": "secret-logging",
+          "description": "The Authorization header containing the API key is written to debug logs."
+        }
+      ]
+    },
+    {
+      "id": "mixed-timeout-path",
+      "title": "Mixed reliability and trust-boundary request",
+      "file": "benchmark/fixtures/mixed-timeout-path.js",
+      "reviewRequest": "Check whether a slow remote configuration can hang us and whether a user-chosen local filename can escape its intended directory.",
+      "expectedLenses": ["reliability", "security"],
+      "plantedFindings": [
+        {
+          "id": "missing-timeout",
+          "description": "The remote fetch has no timeout or cancellation path."
+        },
+        {
+          "id": "path-traversal",
+          "description": "The user-selected filename is joined directly to baseDir without proving the resolved path stays inside the allowed directory."
+        }
+      ]
+    },
+    {
+      "id": "clean-async-client",
+      "title": "Clean asynchronous client control",
+      "file": "benchmark/fixtures/clean-async-client.js",
+      "reviewRequest": "Check whether this request handles cancellation, timeouts, and failed responses cleanly.",
+      "expectedLenses": ["async", "reliability"],
+      "plantedFindings": []
+    }
+  ]
+}
