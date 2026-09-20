@@ -15,4 +15,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - name: Show Prettier diff
+        run: |
+          npm run format
+          git diff -- .
       - run: npm run format:check
