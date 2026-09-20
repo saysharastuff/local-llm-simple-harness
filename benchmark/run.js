@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
-import { dirname, resolve } from "node:path";
+import { resolve } from "node:path";
 import process from "node:process";
 
 const DEFAULT_MANIFEST = "benchmark/manifest.json";
@@ -14,19 +14,15 @@ function sanitizeId(value) {
 function runReview({ file, reviewRequest, decisionMode, decisionTrace }) {
   return new Promise((resolvePromise, rejectPromise) => {
     const started = Date.now();
-    const child = spawn(
-      process.execPath,
-      ["review.js", file, reviewRequest],
-      {
-        cwd: process.cwd(),
-        env: {
-          ...process.env,
-          HARNESS_DECISION_MODE: decisionMode,
-          HARNESS_DECISION_TRACE: decisionTrace ? "true" : "false",
-        },
-        stdio: ["ignore", "pipe", "pipe"],
+    const child = spawn(process.execPath, ["review.js", file, reviewRequest], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        HARNESS_DECISION_MODE: decisionMode,
+        HARNESS_DECISION_TRACE: decisionTrace ? "true" : "false",
       },
-    );
+      stdio: ["ignore", "pipe", "pipe"],
+    });
 
     const stdoutChunks = [];
     const stderrChunks = [];
@@ -37,7 +33,9 @@ function runReview({ file, reviewRequest, decisionMode, decisionTrace }) {
     function capture(chunk, chunks, currentBytes, label) {
       const nextBytes = currentBytes + chunk.length;
       if (nextBytes > MAX_CAPTURE_BYTES) {
-        captureError = new Error(`${label} exceeded ${MAX_CAPTURE_BYTES} bytes`);
+        captureError = new Error(
+          `${label} exceeded ${MAX_CAPTURE_BYTES} bytes`,
+        );
         child.kill("SIGTERM");
         return { nextBytes };
       }
