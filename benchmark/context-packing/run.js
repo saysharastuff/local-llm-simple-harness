@@ -7,6 +7,8 @@ const DEFAULT_MANIFEST = "benchmark/context-packing/manifest.json";
 const DEFAULT_CORPUS = "benchmark/context-packing/corpus";
 const DEFAULT_OUTPUT = "context-packing-results.json";
 const MAX_RETRIEVAL_RESULTS = 12;
+const UNCERTAIN_MAX_MARGIN = 0.08;
+const UNCERTAIN_MIN_RELATIVE_SCORE = 0.82;
 
 function estimateTokens(text) {
   return Math.max(1, Math.ceil(text.length / 4));
@@ -24,6 +26,22 @@ function itemText(tool, item) {
     return `${item.path}\n${item.context ?? item.snippet}`;
   }
   return item.text;
+}
+
+function semanticItemText(tool, item) {
+  if (tool !== "project_search") {
+    return item.text;
+  }
+
+  return [
+    `path: ${item.path}`,
+    `kind: ${item.kind ?? "code"}`,
+    item.symbol ? `symbol: ${item.symbol}` : null,
+    "executable context:",
+    item.semanticContext ?? item.context ?? item.snippet,
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 function collapseByPath(items) {
@@ -78,7 +96,7 @@ async function semanticRerank(baseUrl, facet, tool, items) {
 
   const choices = items.map((item, index) => ({
     id: `candidate-${index}`,
-    description: itemText(tool, item),
+    description: semanticItemText(tool, item),
     exemplars: [item.path],
   }));
 
@@ -115,28 +133,66 @@ async function semanticRerank(baseUrl, facet, tool, items) {
     .filter(Boolean);
 }
 
+function isUncertainRanking(items) {
+  if (items.length < 2) {
+    return false;
+  }
+
+  const top = Number(items[0].semanticScore);
+  const second = Number(items[1].semanticScore);
+
+  if (!Number.isFinite(top) || !Number.isFinite(second) || top <= 0) {
+    return false;
+  }
+
+  return (
+    top - second <= UNCERTAIN_MAX_MARGIN ||
+    second / top >= UNCERTAIN_MIN_RELATIVE_SCORE
+  );
+}
+
 function packSemanticFacets(tool, facetResults, budgetTokens) {
   const selected = [];
   const usedPaths = new Set();
+  const uncertainFacets = [];
   let tokens = 0;
 
   for (const entry of facetResults) {
-    const candidate = entry.items.find((item) => !usedPaths.has(item.path));
-    if (!candidate) {
+    const available = entry.items.filter((item) => !usedPaths.has(item.path));
+    if (available.length === 0) {
       continue;
     }
 
-    const cost = estimateTokens(itemText(tool, candidate));
-    if (tokens + cost > budgetTokens) {
-      continue;
+    const desired = isUncertainRanking(available) ? 2 : 1;
+
+    if (desired === 2) {
+      uncertainFacets.push({
+        facet: entry.facet,
+        topScore: available[0].semanticScore,
+        secondScore: available[1].semanticScore,
+        margin:
+          Number(available[0].semanticScore) -
+          Number(available[1].semanticScore),
+      });
     }
 
-    selected.push({ ...candidate, facet: entry.facet });
-    usedPaths.add(candidate.path);
-    tokens += cost;
+    for (const candidate of available.slice(0, desired)) {
+      const cost = estimateTokens(itemText(tool, candidate));
+      if (tokens + cost > budgetTokens) {
+        continue;
+      }
+
+      selected.push({
+        ...candidate,
+        facet: entry.facet,
+        uncertaintyBackup: desired === 2 && candidate !== available[0],
+      });
+      usedPaths.add(candidate.path);
+      tokens += cost;
+    }
   }
 
-  return { selected, tokens };
+  return { selected, tokens, uncertainFacets };
 }
 
 function packFacetAware(tool, facetResults, budgetTokens) {
@@ -310,12 +366,23 @@ async function main() {
         facetPack.tokens,
         manifest.budgetTokens,
       ),
-      semanticFacetAware: evaluate(
-        scenario.requiredPaths,
-        semanticFacetPack.selected,
-        semanticFacetPack.tokens,
-        manifest.budgetTokens,
-      ),
+      semanticFacetAware: {
+        ...evaluate(
+          scenario.requiredPaths,
+          semanticFacetPack.selected,
+          semanticFacetPack.tokens,
+          manifest.budgetTokens,
+        ),
+        uncertainFacets: semanticFacetPack.uncertainFacets,
+        selectedDetails: semanticFacetPack.selected.map((item) => ({
+          path: item.path,
+          facet: item.facet,
+          semanticScore: item.semanticScore,
+          uncertaintyBackup: Boolean(item.uncertaintyBackup),
+          kind: item.kind ?? null,
+          symbol: item.symbol ?? null,
+        })),
+      },
     });
   }
 
@@ -324,6 +391,10 @@ async function main() {
 
   const output = {
     budgetTokens: manifest.budgetTokens,
+    semanticPolicy: {
+      uncertainMaxMargin: UNCERTAIN_MAX_MARGIN,
+      uncertainMinRelativeScore: UNCERTAIN_MIN_RELATIVE_SCORE,
+    },
     metrics: {
       wholeQueryEvidenceRecall: mean(
         scenarios.map((item) => item.wholeQuery.evidenceRecall),
@@ -351,6 +422,11 @@ async function main() {
       ),
       semanticFacetMeanTokens: mean(
         scenarios.map((item) => item.semanticFacetAware.tokens),
+      ),
+      meanUncertainFacets: mean(
+        scenarios.map(
+          (item) => item.semanticFacetAware.uncertainFacets.length,
+        ),
       ),
     },
     scenarios,
