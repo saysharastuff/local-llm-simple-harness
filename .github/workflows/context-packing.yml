@@ -1,11 +1,6 @@
 name: Context packing benchmark
 
 on:
-  push:
-    branches:
-      - decision-engine-integration
-    paths:
-      - ".github/workflows/context-packing.yml"
   workflow_dispatch:
 
 jobs:
