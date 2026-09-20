@@ -16,9 +16,6 @@ export async function requestWithRetry(
         throw error;
       }
 
-      // Intentional benchmark defects:
-      // - the original error details are discarded;
-      // - every non-abort failure retries forever.
       log.warn("request failed; retrying");
     }
   }

@@ -7,12 +7,7 @@ export async function loadConfiguration({
   remoteConfigUrl,
   fetchImpl = fetch,
 }) {
-  // Intentional benchmark defect: a user-selected filename can contain
-  // parent-directory segments and escape baseDir.
   const localPath = join(baseDir, userFileName);
-
-  // Intentional benchmark defect: a slow remote request has no timeout or
-  // cancellation mechanism.
   const response = await fetchImpl(remoteConfigUrl);
 
   if (!response.ok) {

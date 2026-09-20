@@ -7,8 +7,6 @@ export function createTemperatureMonitor({
   let timer = null;
 
   async function poll(signal) {
-    // Intentional benchmark defect: the signal is not forwarded to the
-    // potentially long-running sensor read.
     const temperature = await readTemperature();
 
     if (!signal?.aborted) {
@@ -29,7 +27,6 @@ export function createTemperatureMonitor({
 
     async stop() {
       await Promise.resolve();
-      // Intentional benchmark defect: the polling interval remains active.
     },
   };
 }
