@@ -2,7 +2,11 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { resolve } from "node:path";
 import { getDecisionConfig, requestDecision } from "./lib/decision-client.js";
-import {\n  buildDecisionRequest,\n  buildReviewGuidance,\n  selectReviewLenses,\n} from "./lib/review-policy.js";
+import {
+  buildDecisionRequest,
+  buildReviewGuidance,
+  selectReviewLenses,
+} from "./lib/review-policy.js";
 
 // Design overview:
 // - This script performs one request/response cycle for one selected file.
@@ -244,7 +248,12 @@ async function readResponseTextBounded(response, maxBytes) {
 // Prompt construction keeps system policy and user request separate:
 // - system message defines review rules and safety posture.
 // - user message contains request text plus the selected file content.
-function buildMessages(\n  reviewRequest,\n  resolvedPath,\n  fileContents,\n  decisionGuidance = "",\n) {
+function buildMessages(
+  reviewRequest,
+  resolvedPath,
+  fileContents,
+  decisionGuidance = "",
+) {
   const systemMessage = [
     "You are reviewing one source file provided by the user.",
     "Review only the supplied file.",
@@ -256,7 +265,9 @@ function buildMessages(\n  reviewRequest,\n  resolvedPath,\n  fileContents,\n  d
     "Respond in readable Markdown, not JSON.",
     "Do not execute or suggest executing commands.",
     decisionGuidance,
-  ]\n    .filter(Boolean)\n    .join(" ");
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const userMessage = [
     `Review request: ${reviewRequest}`,
