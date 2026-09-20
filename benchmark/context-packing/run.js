@@ -7,8 +7,8 @@ const DEFAULT_MANIFEST = "benchmark/context-packing/manifest.json";
 const DEFAULT_CORPUS = "benchmark/context-packing/corpus";
 const DEFAULT_OUTPUT = "context-packing-results.json";
 const MAX_RETRIEVAL_RESULTS = 12;
-const UNCERTAIN_MAX_MARGIN = 0.08;
-const UNCERTAIN_MIN_RELATIVE_SCORE = 0.82;
+const PROJECT_UNCERTAIN_MAX_MARGIN = 0.08;
+const PROJECT_UNCERTAIN_MIN_RELATIVE_SCORE = 0.82;
 
 function estimateTokens(text) {
   return Math.max(1, Math.ceil(text.length / 4));
@@ -133,7 +133,7 @@ async function semanticRerank(baseUrl, facet, tool, items) {
     .filter(Boolean);
 }
 
-function isUncertainRanking(items) {
+function projectRankingIsUncertain(items) {
   if (items.length < 2) {
     return false;
   }
@@ -146,9 +146,24 @@ function isUncertainRanking(items) {
   }
 
   return (
-    top - second <= UNCERTAIN_MAX_MARGIN ||
-    second / top >= UNCERTAIN_MIN_RELATIVE_SCORE
+    top - second <= PROJECT_UNCERTAIN_MAX_MARGIN ||
+    second / top >= PROJECT_UNCERTAIN_MIN_RELATIVE_SCORE
   );
+}
+
+function bestBehaviorBackup(items, usedPaths) {
+  return items
+    .filter(
+      (item) =>
+        !usedPaths.has(item.path) &&
+        (item.kind === "function" || item.kind === "class") &&
+        Number(item.behaviorScore ?? 0) > 0,
+    )
+    .sort(
+      (a, b) =>
+        Number(b.behaviorScore ?? 0) - Number(a.behaviorScore ?? 0) ||
+        Number(b.semanticScore ?? 0) - Number(a.semanticScore ?? 0),
+    )[0];
 }
 
 function packSemanticFacets(tool, facetResults, budgetTokens) {
@@ -163,20 +178,29 @@ function packSemanticFacets(tool, facetResults, budgetTokens) {
       continue;
     }
 
-    const desired = isUncertainRanking(available) ? 2 : 1;
+    const top = available[0];
+    const candidates = [top];
 
-    if (desired === 2) {
-      uncertainFacets.push({
-        facet: entry.facet,
-        topScore: available[0].semanticScore,
-        secondScore: available[1].semanticScore,
-        margin:
-          Number(available[0].semanticScore) -
-          Number(available[1].semanticScore),
-      });
+    if (
+      tool === "project_search" &&
+      projectRankingIsUncertain(available) &&
+      top.kind !== "function" &&
+      top.kind !== "class"
+    ) {
+      const backup = bestBehaviorBackup(available.slice(1), usedPaths);
+      if (backup) {
+        candidates.push(backup);
+        uncertainFacets.push({
+          facet: entry.facet,
+          topScore: top.semanticScore,
+          backupScore: backup.semanticScore,
+          backupBehaviorScore: backup.behaviorScore,
+          backupPath: backup.path,
+        });
+      }
     }
 
-    for (const candidate of available.slice(0, desired)) {
+    for (const candidate of candidates) {
       const cost = estimateTokens(itemText(tool, candidate));
       if (tokens + cost > budgetTokens) {
         continue;
@@ -185,7 +209,7 @@ function packSemanticFacets(tool, facetResults, budgetTokens) {
       selected.push({
         ...candidate,
         facet: entry.facet,
-        uncertaintyBackup: desired === 2 && candidate !== available[0],
+        uncertaintyBackup: candidate !== top,
       });
       usedPaths.add(candidate.path);
       tokens += cost;
@@ -365,6 +389,7 @@ async function main() {
           semanticScore: item.semanticScore,
           kind: item.kind ?? null,
           symbol: item.symbol ?? null,
+          behaviorScore: item.behaviorScore ?? null,
         })),
       })),
       wholeQuery: evaluate(
@@ -405,8 +430,9 @@ async function main() {
   const output = {
     budgetTokens: manifest.budgetTokens,
     semanticPolicy: {
-      uncertainMaxMargin: UNCERTAIN_MAX_MARGIN,
-      uncertainMinRelativeScore: UNCERTAIN_MIN_RELATIVE_SCORE,
+      projectUncertainMaxMargin: PROJECT_UNCERTAIN_MAX_MARGIN,
+      projectUncertainMinRelativeScore: PROJECT_UNCERTAIN_MIN_RELATIVE_SCORE,
+      structuralBackup: "highest-behavior function/class when top project result is non-behavioral and uncertain",
     },
     metrics: {
       wholeQueryEvidenceRecall: mean(
