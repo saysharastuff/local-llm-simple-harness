@@ -57,3 +57,18 @@ test("buildReviewGuidance is deterministic", () => {
   assert.match(guidance, /asynchronous control flow/);
   assert.match(guidance, /error propagation/);
 });
+
+test("selectReviewLenses keeps a separated secondary lens at two-thirds of top", () => {
+  const lenses = selectReviewLenses({
+    ranking: [
+      { choice_id: "security", score: 0.662 },
+      { choice_id: "reliability", score: 0.448 },
+      { choice_id: "async", score: 0.335 },
+      { choice_id: "performance", score: 0.293 },
+      { choice_id: "correctness", score: 0.21 },
+      { choice_id: "maintainability", score: 0.146 },
+    ],
+  });
+
+  assert.deepEqual(lenses, ["security", "reliability"]);
+});
