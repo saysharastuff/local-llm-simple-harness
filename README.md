@@ -107,3 +107,5 @@ node --env-file=.env review.js ./review.js "Review error handling and asynchrono
 ```
 
 Decision traces are written to stderr so stdout remains only the model's review output.
+
+Run `npm test` and `npm run format:check` before merging.
