@@ -20,7 +20,10 @@ function itemKey(tool, item) {
 }
 
 function itemText(tool, item) {
-  return tool === "project_search" ? item.snippet : item.text;
+  if (tool === "project_search") {
+    return `${item.path}\n${item.context ?? item.snippet}`;
+  }
+  return item.text;
 }
 
 function collapseByPath(items) {
