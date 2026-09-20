@@ -20,6 +20,10 @@ function runReview({ file, reviewRequest, decisionMode, decisionTrace }) {
         ...process.env,
         HARNESS_DECISION_MODE: decisionMode,
         HARNESS_DECISION_TRACE: decisionTrace ? "true" : "false",
+        HARNESS_DECISION_TIMEOUT_MS:
+          decisionMode === "required"
+            ? "30000"
+            : process.env.HARNESS_DECISION_TIMEOUT_MS,
       },
       stdio: ["ignore", "pipe", "pipe"],
     });
