@@ -1,0 +1,30 @@
+name: Format tool harness
+
+on:
+  push:
+    branches:
+      - decision-engine-integration
+    paths:
+      - ".github/workflows/format-tool-harness.yml"
+  workflow_dispatch:
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npx prettier benchmark/tool-routing/manifest.json lib/tools.js README.md tool.js --write
+      - uses: actions/upload-artifact@v4
+        with:
+          name: formatted-tool-harness
+          path: |
+            benchmark/tool-routing/manifest.json
+            lib/tools.js
+            README.md
+            tool.js
+          retention-days: 1
