@@ -1,0 +1,50 @@
+[
+  {
+    "id": "correctness",
+    "description": "Logic bugs, incorrect behavior, and edge cases",
+    "exemplars": [
+      "Find bugs in this code",
+      "Check whether the implementation is correct"
+    ]
+  },
+  {
+    "id": "async",
+    "description": "Async control flow, promises, cancellation, and races",
+    "exemplars": [
+      "Review asynchronous behavior",
+      "Check cancellation and concurrency"
+    ]
+  },
+  {
+    "id": "reliability",
+    "description": "Error handling, timeouts, and failure recovery",
+    "exemplars": [
+      "Review error handling",
+      "Look for failure modes"
+    ]
+  },
+  {
+    "id": "security",
+    "description": "Unsafe input, injection, secrets, and trust boundaries",
+    "exemplars": [
+      "Review security",
+      "Look for unsafe handling of untrusted input"
+    ]
+  },
+  {
+    "id": "performance",
+    "description": "Unnecessary work, memory growth, latency, and scalability",
+    "exemplars": [
+      "Review performance",
+      "Look for inefficient behavior"
+    ]
+  },
+  {
+    "id": "maintainability",
+    "description": "Clarity, coupling, duplication, and change risk",
+    "exemplars": [
+      "Review maintainability",
+      "Look for brittle design"
+    ]
+  }
+]
