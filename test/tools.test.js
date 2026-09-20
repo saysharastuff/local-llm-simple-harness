@@ -35,6 +35,8 @@ test("project search finds source symbols", async () => {
   });
 
   assert.equal(results[0].path, "router.js");
+  assert.equal(results[0].kind, "function");
+  assert.equal(results[0].symbol, "buildDecisionRequest");
 });
 
 test("project search includes bounded surrounding context", async () => {
@@ -58,6 +60,29 @@ test("project search includes bounded surrounding context", async () => {
   assert.equal(results[0].path, "auth.js");
   assert.match(results[0].context, /export function loadAuthToken/);
   assert.match(results[0].context, /return env\[name\]/);
+  assert.equal(results[0].kind, "function");
+  assert.equal(results[0].symbol, "loadAuthToken");
+  assert.match(results[0].semanticContext, /export function loadAuthToken/);
+  assert.match(results[0].semanticContext, /return env\[name\]/);
+  assert.doesNotMatch(results[0].semanticContext, /Load the auth token/);
+});
+
+test("project search distinguishes constants from functions for semantic reranking", async () => {
+  const root = await mkdtemp(join(tmpdir(), "harness-project-constant-"));
+  await writeFile(
+    join(root, "banner.js"),
+    [
+      "// startup retry startup retry startup",
+      'export const startupBanner = "Diagnostics enabled";',
+      "",
+    ].join("\n"),
+  );
+
+  const results = await projectSearch("Find startup retry behavior", { root });
+
+  assert.equal(results[0].kind, "constant");
+  assert.equal(results[0].symbol, "startupBanner");
+  assert.doesNotMatch(results[0].semanticContext, /startup retry startup/);
 });
 
 test("doc search returns relevant document chunks", async () => {
